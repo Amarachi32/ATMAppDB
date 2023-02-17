@@ -1,14 +1,12 @@
-﻿using ATMApp.Domain.Entities;
+﻿using ATMApp.Domain.Data;
+using ATMApp.Domain.Entities;
 using ATMApp.Domain.Enums;
 using ATMApp.UI;
-using System.Data;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
-using System.Threading;
-using ATMApp.Domain.Data;
-using Microsoft.Data.SqlClient;
-using System.Reflection.PortableExecutable;
 
 namespace ATMApp
 {
@@ -19,7 +17,7 @@ namespace ATMApp
         private List<Transaction> _listOfTransactions;
         private readonly AppScreen screen;
         private loginDB _loginDB;
-
+        private static UserAccount userAccount;
         public ATMApp()
         {
             screen = new AppScreen();
@@ -29,25 +27,27 @@ namespace ATMApp
         public void Run()
         {
             AppScreen.Welcome();
+            var userDetail = AppScreen.UserLoginForm();
+           userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
+            AppScreen.DisplayAppMenu();
             Console.ReadLine();
-            //CheckUserCardNumAndPassword();
-            //AppScreen.WelcomeCustomer(selectedAccount.FullName);
+            //AppScreen.WelcomeCustomer(userAccount.FullName);
             while (true)
             {
                 AppScreen.DisplayAppMenu();
-                //ProcessMenuoption();
+                ProcessMenuoption(userAccount);
             }
         }
-          public void InitializeData(UserAccount user)
+        public void InitializeData(UserAccount user)
         {
 
             _listOfTransactions = new List<Transaction>();
-            
+
         }
-        
+
         public void ProcessMenuoption(UserAccount user)
         {
-            switch(Validator.Convert<int>("an option:"))
+            switch (Validator.Convert<int>("an option:"))
             {
                 case (int)AppMenu.CheckBalance:
                     CheckBalance(user);
@@ -58,12 +58,10 @@ namespace ATMApp
                     break;
                 case (int)AppMenu.MakeWithdrawal:
                     var amountW = Validator.Convert<int>($"amount {AppScreen.cur}");
-                    //InsertTransaction(user.Id, TransactionType.Withdrawal, amount, "");
-
                     MakeWithDrawal(user, amountW);
                     break;
                 case (int)AppMenu.InternalTransfer:
-                   var internalTransfer = screen.InternalTransferForm();
+                    var internalTransfer = screen.InternalTransferForm();
                     ProcessInternalTransfer(internalTransfer, user);
                     break;
                 case (int)AppMenu.ViewTransaction:
@@ -87,7 +85,7 @@ namespace ATMApp
             Utility.PrintMessage($"Your account balance is: {Utility.FormatAmount(user.AccountBalance)}");
         }
 
-        public void PlaceDeposit( UserAccount user, int amount)
+        public void PlaceDeposit(UserAccount user, int amount)
         {
             SqlConnection connection = DBcon.GetConnection();
             SqlCommand command = new SqlCommand("MakeDeposit", connection);
@@ -100,15 +98,10 @@ namespace ATMApp
                 SqlDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-
-/*                    user.FullName = reader["FullName"].ToString();
-                    user.CardNumber = Convert.ToInt32(reader["CardNumber"].ToString());
-                    user.CardPin = Convert.ToInt32(reader["CardPin"].ToString());*/
                     user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
 
                 }
                 reader.Close();
-
 
             }
             catch (SqlException ex)
@@ -119,9 +112,7 @@ namespace ATMApp
             {
                 connection.Close();
             }
-            //return user;
-            //UserAccount user = new UserAccount();
-            InsertTransaction(user.Id, TransactionType.Deposit, amount, "");
+            //InsertTransaction(user.Id, TransactionType.Deposit, amount, "");
 
 
         }
@@ -154,27 +145,11 @@ namespace ATMApp
             {
                 connection.Close();
             }
-            //return user;
-            //UserAccount user = new UserAccount();
 
+            //InsertTransaction(user.Id, TransactionType.Withdrawal, amount, "");
 
         }
 
-        private bool PreviewBankNotesCount(int amount)
-        {
-            int thousandNotesCount = amount / 1000;
-            int fiveHundredNotesCount = (amount % 1000) / 500;
-
-            Console.WriteLine("\nSummary");
-            Console.WriteLine("------");
-            Console.WriteLine($"{AppScreen.cur}1000 X {thousandNotesCount} = {1000 * thousandNotesCount}");
-            Console.WriteLine($"{AppScreen.cur}500 X {fiveHundredNotesCount} = {500 * fiveHundredNotesCount}");
-            Console.WriteLine($"Total amount: {Utility.FormatAmount(amount)}\n\n");
-
-            int opt = Validator.Convert<int>("1 to confirm");
-            return opt.Equals(1);
-            
-        }
 
         public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
         {
@@ -187,8 +162,7 @@ namespace ATMApp
             command.Parameters.AddWithValue("@transactionAmount", _tranAmount);
             command.Parameters.AddWithValue(" @transactionDate", DateTime.Now);
             command.Parameters.AddWithValue(" @desc", _desc);
-           // command.ExecuteNonQuery();
-            //List<Transaction> _listOfTransactions;
+            // command.ExecuteNonQuery();
             try
             {
                 connection.Open();
@@ -214,23 +188,23 @@ namespace ATMApp
             //add transaction object to the list
             //_listOfTransactions.Add(transaction);
         }
-/*        public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
-        {
-            //create a new transaction object
-            var transaction = new Transaction()
-            {
-                //TransactionId = Utility.GetTransactionId(),
-                UserBankAccountId = _UserBankAccountId,
-                TransactionDate = DateTime.Now,
-                TransactionType = _tranType,
-                TransactionAmount = _tranAmount,
-                Descriprion = _desc
-            };
+        /*        public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
+                {
+                    //create a new transaction object
+                    var transaction = new Transaction()
+                    {
+                        //TransactionId = Utility.GetTransactionId(),
+                        UserBankAccountId = _UserBankAccountId,
+                        TransactionDate = DateTime.Now,
+                        TransactionType = _tranType,
+                        TransactionAmount = _tranAmount,
+                        Descriprion = _desc
+                    };
 
-            //add transaction object to the list
-            _listOfTransactions.Add(transaction);
-        }
-*/
+                    //add transaction object to the list
+                    _listOfTransactions.Add(transaction);
+                }
+        */
         public void ViewTransaction(UserAccount user)
 
         {
@@ -238,18 +212,18 @@ namespace ATMApp
             SqlCommand command = new SqlCommand("ViewTransactions", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@UserId", user.Id);
-           
+
             try
             {
                 connection.Open();
-/*                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
-                {
-                    DataTable transactionsTable = new DataTable();
-                    adapter.Fill(transactionsTable);
+                /*                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                                {
+                                    DataTable transactionsTable = new DataTable();
+                                    adapter.Fill(transactionsTable);
 
 
-                    //dataGridView1.DataSource = transactionsTable;
-                }*/
+                                    //dataGridView1.DataSource = transactionsTable;
+                                }*/
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -257,7 +231,7 @@ namespace ATMApp
                         DateTime TransactionDate = reader.GetDateTime(1);
                         decimal TransactionAmount = reader.GetDecimal(2);
                         string TransactionType = reader.GetString(5);
-                        
+
 
                         Console.WriteLine($"{TransactionDate}: {TransactionType} {TransactionAmount:C}");
                     }
@@ -273,10 +247,10 @@ namespace ATMApp
                 connection.Close();
             }
         }
-  
+
         private void ProcessInternalTransfer(InternalTransfer internalTransfer, UserAccount user)
         {
-     
+
             SqlConnection connection = DBcon.GetConnection();
             SqlCommand command = new SqlCommand("MakeTransfer", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -285,13 +259,13 @@ namespace ATMApp
             command.Parameters.AddWithValue("@FromAccountNumber", user.AccountNumber);
             try
             {
-                
+
                 connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
 
-                   user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
+                    user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
 
                 }
                 reader.Close();
@@ -306,9 +280,6 @@ namespace ATMApp
             {
                 connection.Close();
             }
-            //return user;
-            //UserAccount user = new UserAccount();
-            //check reciever's account number is valid
             var selectedBankAccountReciever = (from userAcc in userAccountList
                                                where userAcc.AccountNumber == internalTransfer.ReciepeintBankAccountNumber
                                                select userAcc).FirstOrDefault();
