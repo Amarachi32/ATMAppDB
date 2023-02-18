@@ -28,7 +28,7 @@ namespace ATMApp
         {
             AppScreen.Welcome();
             var userDetail = AppScreen.UserLoginForm();
-           userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
+            userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
             AppScreen.DisplayAppMenu();
             Console.ReadLine();
             //AppScreen.WelcomeCustomer(userAccount.FullName);
