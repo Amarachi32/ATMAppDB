@@ -18,6 +18,7 @@ namespace ATMApp
         private readonly AppScreen screen;
         private loginDB _loginDB;
         private static UserAccount userAccount;
+
         public ATMApp()
         {
             screen = new AppScreen();
@@ -27,6 +28,8 @@ namespace ATMApp
         public void Run()
         {
             AppScreen.Welcome();
+            Console.WriteLine("\ngo to the program and enter your server name");
+            DBcon.CreateDatabase();
             var userDetail = AppScreen.UserLoginForm();
             userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
             AppScreen.DisplayAppMenu();
@@ -81,13 +84,39 @@ namespace ATMApp
 
         public void CheckBalance(UserAccount user)
         {
-            //var user = loginDB.LoginUser();
-            Utility.PrintMessage($"Your account balance is: {Utility.FormatAmount(user.AccountBalance)}");
+            //SqlConnection connection = DBcon.GetConnection();
+            SqlConnection connection = loginDB.connectDb();
+            var checkBalance = "SELECT AccountBalance FROM UserAccounts WHERE AccountNumber = @AccountNumber";
+            using SqlCommand command = new SqlCommand(checkBalance, connection);
+            //var user = loginDB.LoginUser
+            command.Parameters.AddWithValue("@AccountNumber", user.AccountNumber);
+            try
+            {
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
+                    Utility.PrintMessage($"Your account balance is: {Utility.FormatAmount(user.AccountBalance)}");
+                }
+                reader.Close();
+
+            }
+            catch (SqlException ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                connection.Close();
+            }
+        
         }
 
         public void PlaceDeposit(UserAccount user, int amount)
         {
-            SqlConnection connection = DBcon.GetConnection();
+            //SqlConnection connection = DBcon.GetConnection();
+            SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("MakeDeposit", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@cardPin", user.CardPin);
@@ -119,7 +148,8 @@ namespace ATMApp
 
         public void MakeWithDrawal(UserAccount user, int amount)
         {
-            SqlConnection connection = DBcon.GetConnection();
+            //SqlConnection connection = DBcon.GetConnection();
+            SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("MakeWithrawal", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@cardPin", user.CardPin);
@@ -153,7 +183,8 @@ namespace ATMApp
 
         public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
         {
-            SqlConnection connection = DBcon.GetConnection();
+            //SqlConnection connection = DBcon.GetConnection();
+            SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("InsertTransaction", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@transactionId", Utility.GetTransactionId());
@@ -208,7 +239,8 @@ namespace ATMApp
         public void ViewTransaction(UserAccount user)
 
         {
-            SqlConnection connection = DBcon.GetConnection();
+            //SqlConnection connection = DBcon.GetConnection();
+            SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("ViewTransactions", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@UserId", user.Id);
@@ -251,7 +283,8 @@ namespace ATMApp
         private void ProcessInternalTransfer(InternalTransfer internalTransfer, UserAccount user)
         {
 
-            SqlConnection connection = DBcon.GetConnection();
+            //SqlConnection connection = DBcon.GetConnection();
+            SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("MakeTransfer", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@ToAccountNumber", internalTransfer.ReciepeintBankAccountNumber);
