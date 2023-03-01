@@ -219,23 +219,7 @@ namespace ATMApp
             //add transaction object to the list
             //_listOfTransactions.Add(transaction);
         }
-        /*        public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
-                {
-                    //create a new transaction object
-                    var transaction = new Transaction()
-                    {
-                        //TransactionId = Utility.GetTransactionId(),
-                        UserBankAccountId = _UserBankAccountId,
-                        TransactionDate = DateTime.Now,
-                        TransactionType = _tranType,
-                        TransactionAmount = _tranAmount,
-                        Descriprion = _desc
-                    };
 
-                    //add transaction object to the list
-                    _listOfTransactions.Add(transaction);
-                }
-        */
         public void ViewTransaction(UserAccount user)
 
         {
@@ -248,14 +232,6 @@ namespace ATMApp
             try
             {
                 connection.Open();
-                /*                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
-                                {
-                                    DataTable transactionsTable = new DataTable();
-                                    adapter.Fill(transactionsTable);
-
-
-                                    //dataGridView1.DataSource = transactionsTable;
-                                }*/
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
