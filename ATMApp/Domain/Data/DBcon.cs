@@ -39,15 +39,9 @@ namespace ATMApp.Domain.Data
 
         }
         public static SqlConnection GetConnection()
-        
-        
-        
-        
         {
-            //enter your database connection string
-            //string connectionString = "Data Source=DESKTOP-J5V3R18\\SQLEXPRESS;Initial Catalog=ATMDBl;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
             string connectionString = "Data Source=DESKTOP-J5V3R18\\SQLEXPRESS;Initial Catalog=ATMDBl;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
-            using SqlConnection connect = new SqlConnection(connectionString);       
+            using SqlConnection connect = new SqlConnection(connectionString);
 
             return connect;
 

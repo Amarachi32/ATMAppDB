@@ -56,7 +56,7 @@ namespace ATMApp.UI
             Console.WriteLine("2. Cash Deposit             :");
             Console.WriteLine("3. Withdrawal               :");
             Console.WriteLine("4. Transfer                 :");
-            Console.WriteLine("5. Transactions             :");
+         //   Console.WriteLine("5. Transactions             :");
             Console.WriteLine("6. Logout                   :");
         }
 
@@ -72,7 +72,6 @@ namespace ATMApp.UI
             var internalTransfer = new InternalTransfer();
             internalTransfer.ReciepeintBankAccountNumber = Validator.Convert<long>("recipient's account number:");
             internalTransfer.TransferAmount = Validator.Convert<decimal>($"amount {cur}");
-            internalTransfer.RecipientBankAccountName = Utility.GetUserInput("recipient's name:");
             return internalTransfer;
         }
     }

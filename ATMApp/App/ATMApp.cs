@@ -28,7 +28,6 @@ namespace ATMApp
         public void Run()
         {
             AppScreen.Welcome();
-            Console.WriteLine("\ngo to the program and enter your server name");
             DBcon.CreateDatabase();
             var userDetail = AppScreen.UserLoginForm();
             userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
@@ -84,11 +83,9 @@ namespace ATMApp
 
         public void CheckBalance(UserAccount user)
         {
-            //SqlConnection connection = DBcon.GetConnection();
             SqlConnection connection = loginDB.connectDb();
             var checkBalance = "SELECT AccountBalance FROM UserAccounts WHERE AccountNumber = @AccountNumber";
             using SqlCommand command = new SqlCommand(checkBalance, connection);
-            //var user = loginDB.LoginUser
             command.Parameters.AddWithValue("@AccountNumber", user.AccountNumber);
             try
             {
@@ -110,12 +107,11 @@ namespace ATMApp
             {
                 connection.Close();
             }
-        
+
         }
 
         public void PlaceDeposit(UserAccount user, int amount)
         {
-            //SqlConnection connection = DBcon.GetConnection();
             SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("MakeDeposit", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -128,8 +124,9 @@ namespace ATMApp
                 while (reader.Read())
                 {
                     user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
-
+                   
                 }
+                Utility.PrintMessage($"Deposited Successfully");
                 reader.Close();
 
             }
@@ -148,7 +145,6 @@ namespace ATMApp
 
         public void MakeWithDrawal(UserAccount user, int amount)
         {
-            //SqlConnection connection = DBcon.GetConnection();
             SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("MakeWithrawal", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -161,8 +157,9 @@ namespace ATMApp
                 while (reader.Read())
                 {
                     user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
-
+                   
                 }
+                Utility.PrintMessage($"Withdrawal Sucessful");
                 reader.Close();
 
 
@@ -175,15 +172,12 @@ namespace ATMApp
             {
                 connection.Close();
             }
-
             //InsertTransaction(user.Id, TransactionType.Withdrawal, amount, "");
-
         }
 
 
         public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
         {
-            //SqlConnection connection = DBcon.GetConnection();
             SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("InsertTransaction", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -219,27 +213,9 @@ namespace ATMApp
             //add transaction object to the list
             //_listOfTransactions.Add(transaction);
         }
-        /*        public void InsertTransaction(long _UserBankAccountId, TransactionType _tranType, decimal _tranAmount, string _desc)
-                {
-                    //create a new transaction object
-                    var transaction = new Transaction()
-                    {
-                        //TransactionId = Utility.GetTransactionId(),
-                        UserBankAccountId = _UserBankAccountId,
-                        TransactionDate = DateTime.Now,
-                        TransactionType = _tranType,
-                        TransactionAmount = _tranAmount,
-                        Descriprion = _desc
-                    };
-
-                    //add transaction object to the list
-                    _listOfTransactions.Add(transaction);
-                }
-        */
         public void ViewTransaction(UserAccount user)
 
         {
-            //SqlConnection connection = DBcon.GetConnection();
             SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("ViewTransactions", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -248,14 +224,6 @@ namespace ATMApp
             try
             {
                 connection.Open();
-                /*                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
-                                {
-                                    DataTable transactionsTable = new DataTable();
-                                    adapter.Fill(transactionsTable);
-
-
-                                    //dataGridView1.DataSource = transactionsTable;
-                                }*/
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -282,8 +250,6 @@ namespace ATMApp
 
         private void ProcessInternalTransfer(InternalTransfer internalTransfer, UserAccount user)
         {
-
-            //SqlConnection connection = DBcon.GetConnection();
             SqlConnection connection = loginDB.connectDb();
             SqlCommand command = new SqlCommand("MakeTransfer", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -299,8 +265,26 @@ namespace ATMApp
                 {
 
                     user.AccountBalance = Convert.ToInt32(reader["AccountBalance"].ToString());
+                    var selectedBankAccountReciever = (from userAcc in userAccountList
+                                                       where userAcc.AccountNumber == internalTransfer.ReciepeintBankAccountNumber
+                                                       select userAcc).FirstOrDefault();
+                    if (selectedBankAccountReciever == null)
+                    {
+                        Utility.PrintMessage("Transfer failed. Recieber bank account number is invalid.", false);
+                        return;
+                    }
+
+                    InsertTransaction(user.Id, TransactionType.Transfer, -internalTransfer.TransferAmount, "Transfered " +
+                        $"to {selectedBankAccountReciever.AccountNumber} ({selectedBankAccountReciever.FullName})");
+                    //receiver
+                    InsertTransaction(selectedBankAccountReciever.Id, TransactionType.Transfer, internalTransfer.TransferAmount, "Transfered from " +
+                        $"{selectedAccount.AccountNumber}({selectedAccount.FullName})");
 
                 }
+                //print success message
+                Utility.PrintMessage($"You have successfully transfered" +
+                    $" {Utility.FormatAmount(internalTransfer.TransferAmount)} ",
+                    true);
                 reader.Close();
 
 
@@ -313,31 +297,7 @@ namespace ATMApp
             {
                 connection.Close();
             }
-            var selectedBankAccountReciever = (from userAcc in userAccountList
-                                               where userAcc.AccountNumber == internalTransfer.ReciepeintBankAccountNumber
-                                               select userAcc).FirstOrDefault();
-            if (selectedBankAccountReciever == null)
-            {
-                Utility.PrintMessage("Transfer failed. Recieber bank account number is invalid.", false);
-                return;
-            }
-            //check receiver's name
-            if (selectedBankAccountReciever.FullName != internalTransfer.RecipientBankAccountName)
-            {
-                Utility.PrintMessage("Transfer Failed. Recipient's bank account name does not match.", false);
-                return;
-            }
 
-            InsertTransaction(user.Id, TransactionType.Transfer, -internalTransfer.TransferAmount, "Transfered " +
-                $"to {selectedBankAccountReciever.AccountNumber} ({selectedBankAccountReciever.FullName})");
-            //receiver
-            InsertTransaction(selectedBankAccountReciever.Id, TransactionType.Transfer, internalTransfer.TransferAmount, "Transfered from " +
-                $"{selectedAccount.AccountNumber}({selectedAccount.FullName})");
-
-            //print success message
-            Utility.PrintMessage($"You have successfully transfered" +
-                $" {Utility.FormatAmount(internalTransfer.TransferAmount)} to " +
-                $"{internalTransfer.RecipientBankAccountName}", true);
         }
 
     }

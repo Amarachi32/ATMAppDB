@@ -8,7 +8,7 @@ namespace ATMApp.Domain.Data
 {
     public class loginDB
     {
-       public static SqlConnection connectDb()
+        public static SqlConnection connectDb()
         {
             string connectionString = @"Data Source=DESKTOP-J5V3R18\SQLEXPRESS;Initial Catalog=ATMDBl;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
 
@@ -18,7 +18,7 @@ namespace ATMApp.Domain.Data
         public static UserAccount LoginUser(int cardNumber, int cardPin)
         {
             //SqlConnection connection = DBcon.GetConnection();
-            
+
             SqlConnection connection = connectDb();
             SqlCommand command = new SqlCommand("CheckUser", connection);
             command.CommandType = CommandType.StoredProcedure;
