@@ -28,7 +28,7 @@ namespace ATMApp
         public void Run()
         {
             AppScreen.Welcome();
-            Console.WriteLine("\ngo to the program and enter your server name");
+           // Console.WriteLine("\n go to the program and enter your server name");
             DBcon.CreateDatabase();
             var userDetail = AppScreen.UserLoginForm();
             userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
