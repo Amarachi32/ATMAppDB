@@ -33,7 +33,6 @@ namespace ATMApp
             userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
             AppScreen.DisplayAppMenu();
             Console.ReadLine();
-            //AppScreen.WelcomeCustomer(userAccount.FullName);
             while (true)
             {
                 AppScreen.DisplayAppMenu();
@@ -213,6 +212,7 @@ namespace ATMApp
             //add transaction object to the list
             //_listOfTransactions.Add(transaction);
         }
+
         public void ViewTransaction(UserAccount user)
 
         {

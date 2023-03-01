@@ -13,7 +13,6 @@ namespace ATMApp.Domain.Data
             using SqlConnection connection = new SqlConnection(connectionString);
             try
             {
-
                 connection.Open();
                 string script = File.ReadAllText("script.sql");
                 IEnumerable<string> commands = script.Split(new[] { "GO\r\n", "GO ", "GO\t" }, StringSplitOptions.RemoveEmptyEntries);
