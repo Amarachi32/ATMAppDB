@@ -34,7 +34,6 @@ namespace ATMApp
             userAccount = loginDB.LoginUser((int)userDetail.CardNumber, userDetail.CardPin);
             AppScreen.DisplayAppMenu();
             Console.ReadLine();
-            //AppScreen.WelcomeCustomer(userAccount.FullName);
             while (true)
             {
                 AppScreen.DisplayAppMenu();
