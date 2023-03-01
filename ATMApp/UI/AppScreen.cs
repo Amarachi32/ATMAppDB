@@ -56,7 +56,7 @@ namespace ATMApp.UI
             Console.WriteLine("2. Cash Deposit             :");
             Console.WriteLine("3. Withdrawal               :");
             Console.WriteLine("4. Transfer                 :");
-            Console.WriteLine("5. Transactions             :");
+            //Console.WriteLine("5. Transactions             :");
             Console.WriteLine("6. Logout                   :");
         }
 
